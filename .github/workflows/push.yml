@@ -1,0 +1,25 @@
+name: push_to_another_branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  job2:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+      - name: Copy all files to another branch
+        env:
+          TARGET_BRANCH: 'TEST'
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git fetch
+          git checkout $TARGET_BRANCH || git checkout -b $TARGET_BRANCH  # checkout to your branch or create it if it doesn't exist
+          git checkout ${GITHUB_REF##*/} -- .  # copy all files from the source branch
+          git add -A
+          git diff-index --quiet HEAD || git commit -m "Deploy files from main branch"  # commit if there are changes
+          git push origin $TARGET_BRANCH  # push to remote branch
